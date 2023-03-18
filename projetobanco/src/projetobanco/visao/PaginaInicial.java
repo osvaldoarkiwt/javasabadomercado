@@ -1,18 +1,22 @@
 package projetobanco.visao;
 
-import java.awt.BorderLayout;
-import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import javax.swing.JLabel;
-import java.awt.Font;
-import javax.swing.JTextField;
 import java.awt.Color;
-import javax.swing.JButton;
-import java.awt.event.ActionListener;
+import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+
+import dao.ClienteDao;
+import model.Cliente;
 
 public class PaginaInicial extends JFrame {
 
@@ -21,6 +25,10 @@ public class PaginaInicial extends JFrame {
 	private JTextField campoNome;
 	private JTextField campoAgencia;
 	private JTextField campoConta;
+	private JLabel mensagem;
+	private JScrollPane scrollPane;
+	private JTable table;
+	DefaultTableModel model = new DefaultTableModel();
 
 	/**
 	 * Launch the application.
@@ -42,6 +50,9 @@ public class PaginaInicial extends JFrame {
 	 * Create the frame.
 	 */
 	public PaginaInicial() {
+		
+		ClienteDao clienteDao = new ClienteDao();
+		
 		setBackground(new Color(0, 255, 0));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 849, 447);
@@ -87,16 +98,56 @@ public class PaginaInicial extends JFrame {
 		contentPane.add(campoConta);
 		campoConta.setColumns(10);
 		
+		mensagem = new JLabel("mensagem");
+		mensagem.setBounds(10, 243, 179, 28);
+		contentPane.add(mensagem);
+		
+		
 		JButton btnNewButton = new JButton("inserir");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String id = campoId.getText(), nome = campoNome.getText();
 				String agencia = campoAgencia.getText(), conta = campoConta.getText();
 				
-				System.out.println(id+" "+nome+" "+agencia+" "+conta);				
+				Cliente cliente = new Cliente();
+				
+				cliente.setNome(nome);
+				cliente.setAgencia(agencia);
+				cliente.setConta(conta);
+				
+				clienteDao.salvarCliente(cliente);
+				
+				Object[] row = new Object[] {id,nome,agencia,conta};
+				
+				((DefaultTableModel) table.getModel()).addRow(row);			
 			}
 		});
 		btnNewButton.setBounds(10, 209, 89, 23);
 		contentPane.add(btnNewButton);
+		
+		scrollPane = new JScrollPane();
+		scrollPane.setBounds(255, 36, 514, 270);
+		contentPane.add(scrollPane);
+		
+		table = new JTable();
+		table.setModel(new DefaultTableModel(
+			new Object[][] {
+			},
+			new String[] {
+				"codigo", "nome", "ag\u00EAncia", "conta"
+			}
+		) {
+			Class[] columnTypes = new Class[] {
+				String.class, String.class, String.class, String.class
+			};
+			public Class getColumnClass(int columnIndex) {
+				return columnTypes[columnIndex];
+			}
+		});
+		scrollPane.setViewportView(table);
+		
+		
+		
+		
 	}
 }
