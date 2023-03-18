@@ -33,5 +33,4 @@ public class TesteConexao {
 		System.out.println(clienteResultado);
 		
 	}
-
 }
