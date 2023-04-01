@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -25,10 +27,10 @@ public class PaginaInicial extends JFrame {
 	private JTextField campoNome;
 	private JTextField campoAgencia;
 	private JTextField campoConta;
-	private JLabel mensagem;
 	private JScrollPane scrollPane;
 	private JTable table;
 	DefaultTableModel model = new DefaultTableModel();
+	private JButton atualizarClienteBtn;
 
 	/**
 	 * Launch the application.
@@ -98,28 +100,21 @@ public class PaginaInicial extends JFrame {
 		contentPane.add(campoConta);
 		campoConta.setColumns(10);
 		
-		mensagem = new JLabel("mensagem");
-		mensagem.setBounds(10, 243, 179, 28);
-		contentPane.add(mensagem);
-		
 		
 		JButton btnNewButton = new JButton("inserir");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String id = campoId.getText(), nome = campoNome.getText();
 				String agencia = campoAgencia.getText(), conta = campoConta.getText();
-				
+				//ClienteDao clienteDao = new ClienteDao();
 				Cliente cliente = new Cliente();
 				
 				cliente.setNome(nome);
 				cliente.setAgencia(agencia);
 				cliente.setConta(conta);
 				
-				clienteDao.salvarCliente(cliente);
 				
-				Object[] row = new Object[] {id,nome,agencia,conta};
-				
-				((DefaultTableModel) table.getModel()).addRow(row);			
+				clienteDao.salvarCliente(cliente);		
 			}
 		});
 		btnNewButton.setBounds(10, 209, 89, 23);
@@ -144,10 +139,81 @@ public class PaginaInicial extends JFrame {
 				return columnTypes[columnIndex];
 			}
 		});
+		
+		carregarClientes(clienteDao, table);
+		
 		scrollPane.setViewportView(table);
 		
+		JButton carregarClienteBotao = new JButton("carregar");
+		carregarClienteBotao.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Cliente cliente = retornaCliente(table);
+				campoId.setText(cliente.getId().toString());
+				campoNome.setText(cliente.getNome());
+				campoAgencia.setText(cliente.getAgencia());
+				campoConta.setText(cliente.getConta());
+			}
+		});
+		carregarClienteBotao.setBounds(109, 209, 89, 23);
+		contentPane.add(carregarClienteBotao);
 		
+		atualizarClienteBtn = new JButton("atualizar");
+		atualizarClienteBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Cliente cliente = new Cliente();
+				
+				cliente.setNome(campoNome.getText());
+				cliente.setAgencia(campoAgencia.getText());
+				cliente.setConta(campoConta.getText());
+				
+				clienteDao.atualizarCliente(Long.parseLong(campoId.getText()),cliente);
+
+				LimpaFormulario(campoNome, campoId, campoConta, campoAgencia);
+								
+				limparTabela(table);
+				
+				carregarClientes(clienteDao, table);
+			}
+		});
+		atualizarClienteBtn.setBounds(109, 246, 89, 23);
+		contentPane.add(atualizarClienteBtn);
+	}
+	
+	private static void carregarClientes(ClienteDao cDao,JTable table){
 		
+		List<Cliente> clientes = cDao.listarClientes();
 		
+			clientes.stream().forEach(cliente->{
+			Object[] row = new Object[] {cliente.getId(),cliente.getNome(),
+					cliente.getAgencia(),cliente.getConta()};
+			
+			((DefaultTableModel)table.getModel()).addRow(row); 
+		});	
+	}
+	
+	private static void limparTabela(JTable table) {
+		((DefaultTableModel)table.getModel()).setNumRows(0);
+	}
+	
+	private static Cliente retornaCliente(JTable table) {
+		
+		Cliente cliente = new Cliente();
+		
+		int numero = table.getSelectedRow();
+		if(numero != -1) {
+			cliente.setId((Long) table.getValueAt(numero, 0));
+			cliente.setNome((String) table.getValueAt(numero,1));
+			cliente.setAgencia((String) table.getValueAt(numero, 2));
+			cliente.setConta((String)table.getValueAt(numero,3));
+		}
+		
+		return cliente;
+	}
+	
+	private static void LimpaFormulario(JTextField j1,JTextField j2,JTextField j3,JTextField j4) {
+		j1.setText("");
+		j2.setText("");
+		j3.setText("");
+		j4.setText("");
 	}
 }
